@@ -15,7 +15,7 @@
     grabR: 0.55, // a server catches an empty this close
     tipR: 0.7, // and grabs a tip this close
     tapR: 0.3, // he can pour this close to the tap
-    sendX: L - 0.65, // where a poured cup starts sliding
+    sendX: L - 0.15, // where a poured cup starts sliding (under the jug's spout)
     fall: 0.6, // an empty this far past the tap end falls off: SPLASH
     fallDoor: 0.95, // a full cup this far past the door end falls off: SPLASH
     spacing: 1.45, // animals in a queue keep this far apart

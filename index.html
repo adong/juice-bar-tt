@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ff6f91">
+<title>TT Juice Bar · Teddy &amp; Tommy</title>
+<!-- The game's icon: the same emoji as its card on the dashboard, on a coloured tile. It's the browser tab's icon (the SVG, then
+     a PNG drawn below) and the iPad home screen's (apple-touch-icon). The device's own emoji font draws it: no image files. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20x='2'%20y='2'%20width='60'%20height='60'%20rx='14'%20fill='%23ff6f91'%20stroke='%2314121f'%20stroke-width='4'/%3E%3Ctext%20x='32'%20y='44'%20font-size='36'%20text-anchor='middle'%3E%F0%9F%A7%83%3C/text%3E%3C/svg%3E">
+<script>
+  (function (emoji, tile) {
+    function draw(size, framed) {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const g = c.getContext('2d');
+      if (!g) return '';
+      const u = size / 64;
+      g.fillStyle = tile;
+      if (framed) { // the tab: a rounded tile with the dashboard's dark outline
+        g.beginPath();
+        if (g.roundRect) g.roundRect(2 * u, 2 * u, 60 * u, 60 * u, 14 * u); else g.rect(2 * u, 2 * u, 60 * u, 60 * u);
+        g.fill();
+        g.lineWidth = 4 * u;
+        g.strokeStyle = '#14121f';
+        g.stroke();
+      } else g.fillRect(0, 0, size, size); // the home screen: iOS rounds the corners itself
+      g.font = `${Math.round(size * (framed ? 0.56 : 0.62))}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+      g.textAlign = 'center';
+      const m = g.measureText(emoji);
+      const up = m.actualBoundingBoxAscent || size * 0.4, down = m.actualBoundingBoxDescent || 0;
+      g.fillText(emoji, size / 2, size / 2 + (up - down) / 2);
+      try { return c.toDataURL('image/png'); } catch (e) { return ''; }
+    }
+    const tab = draw(64, true), home = draw(180, false);
+    if (tab) document.querySelector('link[rel="icon"]').href = tab;
+    if (home) {
+      const l = document.createElement('link');
+      l.rel = 'apple-touch-icon';
+      l.href = home;
+      document.head.appendChild(l);
+    }
+  })('🧃', '#ff6f91');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #ffd400;
+    --pink: #ff3d7f;
+    --berry: #ff6f91;
+    --cyan: #18d4ff;
+    --blue: #3d8bff;
+    --red: #ff4b5c;
+    --green: #2fc27a;
+    --orange: #ff9a1f;
+    --ink: #14121f;
+    --display: 'Bungee', 'Arial Black', Impact, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #ffe9a8; color: #fff;
+    font-family: 'Rubik', system-ui, -apple-system, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  .vignette { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 62%, rgba(10, 8, 30, 0.22) 100%); }
+  .hidden { opacity: 0 !important; pointer-events: none !important; visibility: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; }
+  .bars {
+    position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: flex-start; gap: 10px;
+    padding: max(8px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 0 max(58px, env(safe-area-inset-left));
+  }
+  .pb { flex: 1; display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
+  .pb.right { flex-direction: row-reverse; }
+  .face {
+    flex: none; width: 52px; height: 52px; border-radius: 14px; overflow: hidden; border: 3px solid #fff;
+    background: radial-gradient(circle at 50% 35%, #a5dcff, #2a7bd6); box-shadow: 0 4px 0 var(--ink);
+  }
+  .right .face { background: radial-gradient(circle at 50% 35%, #ffc0c8, #d6334a); }
+  .face img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.15) translateY(4%); }
+  .col { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .right .col { align-items: flex-end; }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .right .row { flex-direction: row-reverse; }
+  .nm { font-family: var(--display); font-size: 18px; line-height: 1; -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 0 2px 0 var(--ink); }
+  .who { font: 800 11px/1 'Rubik', sans-serif; letter-spacing: 1px; padding: 3px 7px; border-radius: 999px; background: var(--blue); border: 2px solid #fff; }
+  .right .who { background: var(--red); }
+  .boost { display: none; font: 800 12px/1 'Rubik', sans-serif; padding: 3px 8px; border-radius: 999px; background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); }
+  .pb.fast .boost { display: inline-block; animation: pulse 0.6s ease-in-out infinite; }
+  .bud { display: flex; align-items: center; gap: 5px; }
+  .bud img { width: 26px; height: 26px; border-radius: 8px; border: 2px solid #fff; background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c); object-fit: cover; }
+  .bud span { font: 800 11px/1.1 'Rubik', sans-serif; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+  .bud .k { font: 800 10px/1 'Rubik', sans-serif; padding: 3px 5px; border-radius: 5px; background: #fff; color: var(--ink); text-shadow: none; }
+  .bud.on img { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255, 212, 0, 0.95); }
+  .touch .bud .k { display: none; }
+  .mid { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 150px; }
+  #barName {
+    font-family: var(--display); font-size: 14px; letter-spacing: 1px; padding: 4px 12px; border-radius: 999px; white-space: nowrap;
+    background: rgba(20, 18, 31, 0.6); border: 2px solid rgba(255, 255, 255, 0.75);
+  }
+  .stat { display: flex; align-items: center; gap: 8px; }
+  #lives { font-size: 18px; line-height: 1; letter-spacing: -2px; min-height: 18px; filter: drop-shadow(0 2px 0 var(--ink)); }
+  #lives.hit { animation: nope 0.4s linear; }
+  .chip { font: 800 15px/1 'Rubik', sans-serif; letter-spacing: 1px; font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 999px; background: rgba(20, 18, 31, 0.6); border: 2px solid rgba(255, 255, 255, 0.7); white-space: nowrap; }
+  #hi { font: 800 11px/1 'Rubik', sans-serif; letter-spacing: 1px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+  .ibtns { display: flex; gap: 6px; pointer-events: auto; }
+  .ibtn {
+    width: 34px; height: 34px; border-radius: 10px; font-size: 15px; line-height: 1;
+    background: rgba(20, 18, 31, 0.5); border: 2px solid rgba(255, 255, 255, 0.75); display: grid; place-items: center;
+  }
+  #toasts { position: absolute; left: 0; right: 0; top: max(96px, 15%); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+  .toast {
+    font-family: var(--display); font-size: clamp(16px, 2.7vw, 26px); color: #fff; padding: 4px 16px; border-radius: 16px; text-align: center;
+    -webkit-text-stroke: 1.5px var(--ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--ink);
+    background: rgba(20, 18, 31, 0.35); animation: toast 1.9s ease-out forwards; max-width: 92vw;
+  }
+  .toast.good { color: var(--yellow); }
+  .toast.buddy { color: var(--cyan); font-size: clamp(18px, 3.2vw, 32px); }
+  .toast.oops { color: #ff9ab0; }
+  @keyframes toast {
+    0% { opacity: 0; transform: scale(1.8); }
+    10% { opacity: 1; transform: scale(0.95); }
+    18%, 78% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: translateY(-24px); }
+  }
+  .banner {
+    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font-family: var(--display); opacity: 0;
+    font-size: clamp(40px, 9vw, 100px); line-height: 1; color: var(--yellow); padding: 0 12px;
+    -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill;
+    text-shadow: 0 7px 0 var(--pink), 0 12px 0 var(--ink), 0 20px 30px rgba(0, 0, 0, 0.35);
+    transition: opacity 0.25s;
+  }
+  .banner small { display: block; font-size: 0.32em; margin-top: 10px; color: #fff; -webkit-text-stroke: 2px var(--ink); text-shadow: 0 4px 0 var(--ink); }
+  .banner.show { opacity: 1; animation: slam 0.45s cubic-bezier(.2, 1.6, .4, 1); }
+  .banner.cool { color: #fff; text-shadow: 0 6px 0 var(--berry), 0 11px 0 var(--ink); }
+  .banner.win { color: var(--cyan); top: 12%; text-shadow: 0 6px 0 var(--yellow), 0 11px 0 var(--ink); }
+  @keyframes slam { from { transform: scale(2.4) rotate(-8deg); opacity: 0; } }
+  @keyframes pulse { 50% { transform: scale(1.12); } }
+  @keyframes nope { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+
+  /* ---------- touch: a pad and a pour button per server, and the brother button ---------- */
+  #touch { position: fixed; inset: 0; pointer-events: none; display: none; }
+  .touch #touch { display: block; }
+  .pad {
+    position: absolute; bottom: max(16px, env(safe-area-inset-bottom)); width: var(--pad, 150px); height: var(--pad, 150px); border-radius: 50%; pointer-events: auto; touch-action: none;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3), rgba(20, 18, 31, 0.45)); border: 4px solid rgba(255, 255, 255, 0.85);
+  }
+  #pad0 { left: calc(max(16px, env(safe-area-inset-left)) + var(--padin, 52px)); }
+  #pad1 { right: max(16px, env(safe-area-inset-right)); display: none; }
+  .two #pad1 { display: block; }
+  .pad .ar { position: absolute; font-size: 22px; opacity: 0.85; text-shadow: 0 2px 0 var(--ink); }
+  .pad .u { top: 6px; left: 50%; translate: -50% 0; }
+  .pad .d { bottom: 6px; left: 50%; translate: -50% 0; }
+  .pad .l { left: 9px; top: 50%; translate: 0 -50%; }
+  .pad .r { right: 9px; top: 50%; translate: 0 -50%; }
+  .pad .knob { position: absolute; left: 50%; top: 50%; width: 38%; height: 38%; translate: -50% -50%; border-radius: 50%; background: var(--yellow); border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); transition: transform 0.06s; }
+  #pad1 .knob { background: #ffb0b0; }
+  .pad[data-dir="r"] .knob { transform: translate(60%, 0); }
+  .pad[data-dir="l"] .knob { transform: translate(-60%, 0); }
+  .pad[data-dir="u"] .knob { transform: translate(0, -60%); }
+  .pad[data-dir="d"] .knob { transform: translate(0, 60%); }
+  .rbtn {
+    position: absolute; width: var(--btn, 96px); height: var(--btn, 96px); border-radius: 50%; pointer-events: auto; touch-action: none;
+    display: grid; place-items: center; font-size: calc(var(--btn, 96px) * 0.44); border: 4px solid #fff; box-shadow: 0 6px 0 var(--ink);
+    background: radial-gradient(circle at 50% 35%, #fff3b0, #ffb02e);
+  }
+  .rbtn.down { transform: translateY(5px); box-shadow: 0 1px 0 var(--ink); }
+  .rbtn small { position: absolute; bottom: -18px; left: 50%; translate: -50% 0; font: 800 11px/1 'Rubik', sans-serif; letter-spacing: 1px; white-space: nowrap; text-shadow: 0 1px 2px var(--ink), 0 0 4px var(--ink); }
+  #pour0 { right: calc(max(16px, env(safe-area-inset-right)) + 8px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 20px); }
+  #pour1 { display: none; right: calc(max(16px, env(safe-area-inset-right)) + var(--pad, 150px) + 18px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 20px); background: radial-gradient(circle at 50% 35%, #ffd0d8, #ff6f91); }
+  .two #pour1 { display: grid; }
+  .two #pour0 { right: auto; left: calc(max(16px, env(safe-area-inset-left)) + var(--padin, 52px) + var(--pad, 150px) + 18px); }
+  .budbtn {
+    position: fixed; width: var(--btn, 96px); height: var(--btn, 96px); padding: 0; border-radius: 50%; overflow: hidden; pointer-events: auto;
+    display: grid; place-items: center; border: 4px solid #fff; box-shadow: 0 6px 0 var(--ink);
+    background: radial-gradient(circle at 50% 35%, #ffe2a0, #ff9f1c);
+    right: calc(max(16px, env(safe-area-inset-right)) + 8px); bottom: calc(max(16px, env(safe-area-inset-bottom)) + var(--btn, 96px) + 44px);
+  }
+  .budbtn img { width: 84%; height: 84%; border-radius: 50%; object-fit: cover; }
+  .budbtn kbd { position: absolute; top: 8px; right: 12px; min-width: 18px; height: 18px; font-size: 10px; }
+  .touch .budbtn kbd { display: none; }
+  .budbtn.on { border-color: var(--yellow); box-shadow: 0 6px 0 var(--ink), 0 0 24px rgba(255, 212, 0, 0.95); }
+  .budbtn.down { transform: translateY(5px); box-shadow: 0 1px 0 var(--ink); }
+  .budbtn .hf { display: none; font-size: calc(var(--btn, 96px) * 0.45); }
+  .two .budbtn { right: auto; left: 50%; translate: -50% 0; bottom: max(16px, env(safe-area-inset-bottom)); }
+  .two .budbtn img { display: none; }
+  .two .budbtn .hf { display: block; }
+  /* without touch, the brother button sits in the top-right corner for a mouse (2 players use T) */
+  body:not(.touch) .budbtn { top: max(10px, env(safe-area-inset-top)); bottom: auto; right: max(14px, env(safe-area-inset-right)); width: 62px; height: 62px; }
+  body:not(.touch).two .budbtn { display: none; }
+  body:not(.touch) .pb.right { margin-right: 0; }
+  body:not(.touch):not(.two) .bars { padding-right: 90px; }
+
+  /* ---------- screens ---------- */
+  .screen {
+    position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    gap: clamp(7px, 1.6vh, 14px); padding: 14px 16px 16px 64px; text-align: center; transition: opacity 0.3s;
+    background: linear-gradient(180deg, rgba(20, 18, 40, 0.12), rgba(20, 18, 40, 0.6));
+    overflow-y: auto; justify-content: safe center;
+  }
+  .logo { transform: rotate(-4deg); line-height: 0.9; margin-bottom: 2px; }
+  .logo span { display: block; font-family: var(--display); -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; }
+  .logo .l1 { color: #fff; font-size: clamp(18px, min(4.2vw, 4.6vh), 40px); text-shadow: 0 5px 0 var(--berry), 0 9px 0 var(--ink); }
+  .logo .l2 { color: var(--yellow); font-size: clamp(34px, min(8.6vw, 9.6vh), 92px); text-shadow: 0 6px 0 var(--orange), 0 11px 0 var(--ink), 0 18px 30px rgba(0, 0, 0, 0.35); }
+  .logo .tt { display: inline; color: var(--cyan); text-shadow: 0 6px 0 var(--berry), 0 11px 0 var(--ink); }
+  .tag { font-size: clamp(14px, 2.2vw, 19px); font-weight: 700; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6); }
+  .btn {
+    font-family: var(--display); font-size: clamp(17px, 3vw, 25px); color: var(--ink);
+    background: var(--yellow); border: 4px solid var(--ink); border-radius: 20px; padding: 10px 22px;
+    box-shadow: 0 8px 0 var(--ink), 0 14px 30px rgba(0, 0, 0, 0.3); transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active, .btn.down { transform: translateY(6px); box-shadow: 0 2px 0 var(--ink); }
+  .btn.alt { background: var(--cyan); }
+  .btn.ghost { background: #fff; }
+  .btn.small { font-size: clamp(15px, 2.4vw, 19px); padding: 8px 18px; border-radius: 16px; box-shadow: 0 6px 0 var(--ink); }
+  .btn small { display: block; font: 800 11px/1.2 'Rubik', sans-serif; letter-spacing: 0.5px; margin-top: 3px; }
+  .btn.focus { outline: 4px solid #fff; outline-offset: 3px; }
+  .modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .pulse { animation: pulse 1.3s ease-in-out infinite; }
+  .opts { display: flex; gap: 12px 18px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .levels, .heroes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .lvl, .hero {
+    display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 14px; text-align: left;
+    background: rgba(20, 18, 31, 0.55); border: 3px solid rgba(255, 255, 255, 0.7); transition: transform 0.12s;
+  }
+  .lvl .e { font-size: 24px; }
+  .lvl b, .hero b { display: block; font-family: var(--display); font-size: 15px; font-weight: 400; }
+  .lvl small, .hero small { font-size: 11px; font-weight: 700; opacity: 0.85; }
+  .hero img { width: 40px; height: 40px; border-radius: 10px; background: radial-gradient(circle at 50% 35%, #a5dcff, #2a7bd6); }
+  .lvl[aria-checked="true"], .hero[aria-checked="true"] { background: rgba(255, 212, 0, 0.3); border-color: var(--yellow); transform: scale(1.05); box-shadow: 0 0 0 3px var(--ink); }
+  .two-mode .heroes { display: none; }
+  .waves { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .wave {
+    min-width: 46px; height: 46px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; gap: 6px; font: 800 13px/1 'Rubik', sans-serif;
+    background: rgba(20, 18, 31, 0.5); border: 3px solid rgba(255, 255, 255, 0.55);
+  }
+  .wave span { font-size: 20px; }
+  .wave.lock { opacity: 0.4; cursor: default; }
+  .wave[aria-checked="true"] { background: var(--yellow); color: var(--ink); border-color: var(--ink); transform: scale(1.08); }
+  #waveLabel { font-family: var(--display); font-size: 14px; letter-spacing: 1px; text-shadow: 0 2px 0 var(--ink); }
+  .keys {
+    display: grid; grid-template-columns: auto auto auto; gap: 4px 16px; align-items: center; text-align: left;
+    padding: 9px 16px; border-radius: 16px; background: rgba(20, 18, 31, 0.6); border: 2px solid rgba(255, 255, 255, 0.6);
+    font-size: 13px; font-weight: 700;
+  }
+  .keys .h { font-family: var(--display); font-size: 13px; font-weight: 400; letter-spacing: 1px; }
+  .keys .h.p1 { color: #8cc2ff; }
+  .keys .h.p2 { color: #ffb0b0; }
+  kbd {
+    display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; margin: 1px;
+    font: 700 12px/1 system-ui, sans-serif; color: var(--ink); background: #fff; border-radius: 6px; box-shadow: 0 2px 0 #9aa;
+  }
+  .touch-hint { display: none; font-weight: 700; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); max-width: 560px; font-size: 14px; }
+  .touch .keys { display: none; }
+  .touch .touch-hint { display: block; }
+  .zoo { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 760px; }
+  .zoo span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 999px; background: rgba(20, 18, 31, 0.55); border: 2px solid rgba(255, 255, 255, 0.55); font-size: 12px; font-weight: 700; }
+  .zoo i { font-style: normal; font-size: 20px; }
+  .zoo b { font-family: var(--display); font-weight: 400; }
+  .hint { font-size: 13px; font-weight: 700; opacity: 0.9; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+  .credit { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); font-size: 13px; font-weight: 700; opacity: 0.85; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); pointer-events: none; }
+  .credit b { color: #ffe2a0; }
+  @media (max-height: 560px) { .zoo { display: none; } }
+  @media (max-height: 520px), (orientation: portrait) and (max-width: 700px) { .credit { display: none; } }
+  @media (max-height: 460px) {
+    :root { --pad: 116px; --btn: 72px; --padin: 50px; }
+    .keys, .touch-hint, .tag, #waveLabel { display: none !important; }
+    .screen { gap: 6px; }
+    .logo .l2 { font-size: clamp(28px, min(8vw, 12vh), 80px); }
+    .face { width: 40px; height: 40px; border-radius: 11px; }
+    .nm { font-size: 14px; }
+    .bud span { display: none; }
+    #barName, #hi { display: none; }
+    .mid { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 320px; gap: 4px 8px; }
+  }
+  @media (max-width: 560px) {
+    .bars { gap: 6px; }
+    .face { width: 40px; height: 40px; border-radius: 11px; }
+    .nm { font-size: 14px; }
+    .who, .bud span { display: none; }
+    .mid { min-width: 0; }
+    #barName { font-size: 11px; padding: 3px 8px; }
+  }
+  @media (max-width: 480px) {
+    .nm, #barName { display: none; }
+    .pb { flex: none; }
+    .mid { flex: 1; }
+    #lives { font-size: 15px; }
+  }
+
+  /* ---------- pause / results ---------- */
+  .big {
+    font-family: var(--display); font-size: clamp(38px, 8vw, 90px); color: var(--cyan); transform: rotate(-4deg);
+    -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 7px 0 var(--yellow), 0 12px 0 var(--ink);
+  }
+  #resFace { width: clamp(84px, 16vh, 140px); aspect-ratio: 1; border-radius: 24px; border: 4px solid #fff; background: radial-gradient(circle at 50% 35%, #fff3a0, #ffb02e); box-shadow: 0 6px 0 var(--ink); animation: pulse 1.2s ease-in-out infinite; }
+  #resTitle { color: var(--yellow); }
+  #results { background: linear-gradient(180deg, rgba(20, 18, 40, 0), rgba(20, 18, 40, 0.55) 40%, rgba(20, 18, 40, 0.72)); }
+  .stats { padding: 10px 18px; border-radius: 16px; background: rgba(20, 18, 31, 0.65); border: 2px solid rgba(255, 255, 255, 0.7); font-size: 15px; font-weight: 700; display: flex; flex-direction: column; gap: 4px; }
+  .stats:empty { display: none; }
+  .stats b { font-family: var(--display); font-weight: 400; color: var(--yellow); margin-right: 6px; }
+  .stats .new { color: var(--cyan); animation: pulse 0.9s ease-in-out infinite; display: inline-block; }
+  .btnrow { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  #loading { position: fixed; inset: 0; display: grid; place-items: center; background: #ff6f91; font-family: var(--display); font-size: 28px; letter-spacing: 2px; padding: 24px; text-align: center; }
+  .rotate { display: none; position: fixed; left: 50%; bottom: 14px; translate: -50% 0; padding: 8px 14px; border-radius: 999px; background: rgba(20, 18, 31, 0.75); font-weight: 800; font-size: 13px; pointer-events: none; white-space: nowrap; }
+  @media (orientation: portrait) and (max-width: 700px) { .screen:not(.hidden) ~ .rotate { display: block; } }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="vignette"></div>
+
+<div id="hud" class="hidden">
+  <div class="bars">
+    <div class="pb" id="pb0">
+      <div class="face"><img alt=""></div>
+      <div class="col">
+        <div class="row"><span class="nm">TEDDY</span><span class="who">1P</span><span class="boost">⚡ FAST</span></div>
+        <div class="bud" id="budInfo"><img alt=""><span></span><span class="k">T</span></div>
+      </div>
+    </div>
+    <div class="mid">
+      <div id="barName">WAVE 1 · SUNNY BEACH</div>
+      <div class="stat"><div id="lives"></div><div id="score" class="chip">0</div><div id="served" class="chip">🧃 0/0</div></div>
+      <div id="hi">HI-SCORE 0</div>
+      <div class="ibtns">
+        <button id="pauseBtn" class="ibtn" title="Pause (P)">❚❚</button>
+        <button class="ibtn muteBtn" title="Sound (M)">🔊</button>
+      </div>
+    </div>
+    <div class="pb right" id="pb1">
+      <div class="face"><img alt=""></div>
+      <div class="col">
+        <div class="row"><span class="nm">TOMMY</span><span class="who">2P</span><span class="boost">⚡ FAST</span></div>
+      </div>
+    </div>
+  </div>
+  <div id="toasts"></div>
+  <div id="banner" class="banner"></div>
+  <button id="budBtn" class="budbtn" title="Call your brother (T)"><img alt=""><span class="hf">✋</span><kbd>T</kbd></button>
+</div>
+
+<div id="touch">
+  <div id="pad0" class="pad" data-dir=""><span class="ar u">▲</span><span class="ar d">▼</span><span class="ar l">◀</span><span class="ar r">▶</span><i class="knob"></i></div>
+  <div id="pad1" class="pad" data-dir=""><span class="ar u">▲</span><span class="ar d">▼</span><span class="ar l">◀</span><span class="ar r">▶</span><i class="knob"></i></div>
+  <button id="pour0" class="rbtn">🧃<small>HOLD TO POUR</small></button>
+  <button id="pour1" class="rbtn">🧃<small>HOLD TO POUR</small></button>
+</div>
+
+<div id="title" class="screen">
+  <div class="logo" data-no-lang><span class="l1">TEDDY &amp; TOMMY</span><span class="l2" id="logoMain"></span></div>
+  <p class="tag" id="tagline"></p>
+  <div class="modes">
+    <button id="mode1" class="btn pulse" data-mode="1">🧃 1 PLAYER<small>serve the thirsty animals</small></button>
+    <button id="mode2" class="btn alt" data-mode="2">👫 2 PLAYERS<small>Teddy and Tommy share the bar</small></button>
+  </div>
+  <div class="opts">
+    <div class="levels" role="radiogroup" aria-label="Difficulty">
+      <button class="lvl" data-level="easy" role="radio"><span class="e">🐣</span><span><b>EASY</b><small>slow animals, 5 lives, free splashes</small></span></button>
+      <button class="lvl" data-level="normal" role="radio"><span class="e">🔥</span><span><b>NORMAL</b><small>for big kids</small></span></button>
+    </div>
+    <div class="heroes" role="radiogroup" aria-label="Server">
+      <button class="hero" data-hero="teddy" role="radio"><img alt=""><span><b data-no-lang>TEDDY</b><small>Tommy helps</small></span></button>
+      <button class="hero" data-hero="tommy" role="radio"><img alt=""><span><b data-no-lang>TOMMY</b><small>Teddy helps</small></span></button>
+    </div>
+  </div>
+  <div class="waves" id="waves" role="radiogroup" aria-label="Wave"></div>
+  <div id="waveLabel"></div>
+  <div class="keys">
+    <span></span><span class="h p1">PLAYER 1</span><span class="h p2">PLAYER 2</span>
+    <span>change counter</span><span><kbd>W</kbd><kbd>S</kbd></span><span><kbd>↑</kbd><kbd>↓</kbd></span>
+    <span>walk along it</span><span><kbd>A</kbd><kbd>D</kbd></span><span><kbd>←</kbd><kbd>→</kbd></span>
+    <span>hold to pour, let go to slide</span><span><kbd>Space</kbd> <kbd>F</kbd></span><span><kbd>Enter</kbd> <kbd>/</kbd></span>
+    <span>call your brother</span><span><kbd>T</kbd></span><span></span>
+    <span>pause · sound</span><span><kbd>P</kbd> <kbd>M</kbd></span><span></span>
+  </div>
+  <p class="touch-hint">The round pad changes counter (▲ ▼) and walks along it (◀ ▶). Hold 🧃 to pour and let go to slide the cup. Your brother's face calls him in. Two players on one iPad: a pad and a 🧃 each.</p>
+  <div class="zoo" id="zoo"></div>
+  <div class="credit">built with <b>Claude Code</b></div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <div class="big">PAUSED</div>
+  <div class="btnrow">
+    <button id="resumeBtn" class="btn">▶ RESUME</button>
+    <button id="quitBtn" class="btn small ghost">MENU</button>
+  </div>
+  <p class="hint">P · Esc · Space to carry on · Q for the menu · M sound</p>
+</div>
+
+<div id="results" class="screen hidden">
+  <img id="resFace" alt="">
+  <div id="resTitle" class="big">WAVE CLEAR!</div>
+  <p id="resSub" class="tag"></p>
+  <div id="resStats" class="stats"></div>
+  <div class="btnrow">
+    <button id="nextBtn" class="btn">NEXT WAVE ▶</button>
+    <button id="againBtn" class="btn alt small">↻ PLAY AGAIN</button>
+    <button id="menuBtn" class="btn ghost small">MENU</button>
+  </div>
+  <p class="hint" id="resHint">Enter to go on · R to play again · Esc for the menu</p>
+</div>
+
+<div id="loading">LOADING…</div>
+<div class="rotate">↻ Turn sideways for a bigger bar!</div>
+
+<script src="kit/three.min.js"></script>
+<script src="kit/gfx.js"></script>
+<script src="kit/people.js"></script>
+<script src="kit/roster.js"></script>
+<script src="kit/portraits.js"></script>
+<script src="kit/sound.js"></script>
+<script src="kit/lang.js"></script>
+<script src="kit/help.js"></script>
+<script src="js/title.js"></script>
+<script src="js/config.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/bot.js"></script>
+<script src="js/check.js"></script>
+<script src="js/input.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/art.js"></script>
+<script src="js/game.js"></script>
+<script src="js/playcheck.js"></script>
+<script src="js/keys.js"></script>
+<script src="js/zh.js"></script>
+</body>
+</html>
