@@ -13,17 +13,20 @@ const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const root = path.join(__dirname, '..');
 const [mode = 'check', a1, a2] = process.argv.slice(2);
 const url = (mode === 'shot' ? a2 : a1) || 'file://' + path.join(root, 'index.html');
-const port = 9300 + Math.floor(Math.random() * 500);
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'jb-chrome-'));
 const chrome = spawn(CHROME, [
-  '--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, '--window-size=1200,750',
+  '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--window-size=1200,750',
   '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--allow-file-access-from-files', '--autoplay-policy=user-gesture-required',
   '--hide-scrollbars', '--mute-audio', 'about:blank',
 ], { stdio: 'ignore' });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function main() {
-  let targets;
+  // Chrome picks a free port and writes it into our own profile, so two sessions' runs can never meet on one port
+  let port = 0, targets;
+  for (let k = 0; k < 100 && !port; k++) {
+    try { port = +fs.readFileSync(path.join(profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]; } catch (e) { await sleep(100); }
+  }
   for (let k = 0; k < 50; k++) {
     try { targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); break; } catch (e) { await sleep(200); }
   }
