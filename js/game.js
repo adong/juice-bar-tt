@@ -1005,6 +1005,7 @@
         }
       }
     }
+    if (world.B) world.B.sign.visible = G.screen !== 'title'; // the title has the big logo instead
     syncServers(G.M, dt);
     syncBuddy(G.M, dt);
     syncAnimals(G.M, dt);
