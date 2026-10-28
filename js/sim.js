@@ -104,6 +104,8 @@
     }
     buddyStep(M, dt);
     if (M.state === 'oops') {
+      // nothing moves, but letting go of the pour key now doesn't fire the cup later: he just keeps it
+      M.servers.forEach((sv, i) => { sv.held = !!(inputs[i] && inputs[i].fill); });
       leavers(M, dt);
       if (!SAB.stuckOops && M.stateT >= TUNE.oopsT) setState(M, M.lives <= 0 ? 'over' : 'play');
       if (M.state === 'over') ev(M, 'over');

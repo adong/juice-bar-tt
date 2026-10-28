@@ -132,13 +132,14 @@
       const moves = (label, i = 0, K = SETS.arrows) => {
         game.put(i, S(i).row, 7);
         let a = game.screenOf(i);
+        const x0 = S(i).x;
         hold(K.R, 0.25);
         let b = game.screenOf(i);
-        const right = b.x - a.x > 8;
+        const right = b.x - a.x > 8, x1 = S(i).x, dr = b.x - a.x;
         a = b;
         hold(K.L, 0.25);
         b = game.screenOf(i);
-        return ok(right && a.x - b.x > 8, `${label}: → and ← didn't move him afterwards`);
+        return ok(right && a.x - b.x > 8, `${label}: → and ← didn't move him afterwards (x ${x0.toFixed(2)} → ${x1.toFixed(2)} → ${S(i).x.toFixed(2)}, ${dr.toFixed(0)} / ${(b.x - a.x).toFixed(0)} px, ${M().state}, ${game.G.screen}, held ${JB.Input.held().join(' ')}, other ${S(1 - i) ? S(1 - i).row + '/' + S(1 - i).x.toFixed(2) : '-'}, row ${S(i).row})`);
       };
       // a lost life: a short pause, then the keys work again
       game.start({ n: 0, diff: 'normal' });
@@ -179,6 +180,7 @@
         for (const two of [false, true]) {
           game.start({ n, diff: 'normal', two });
           M().lives = 999;
+          M().noClear = true; // the kid may serve them all: keep bashing
           const down = new Set();
           const secs = o.quick ? 8 : 30;
           for (let f = 0; f < secs * 60; f++) {

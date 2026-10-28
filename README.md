@@ -33,7 +33,7 @@ Pick **🧃 1 PLAYER** or **👫 2 PLAYERS**, a difficulty, your server (1 playe
 - **Catching:** the first thirsty animal it reaches catches it, slides back toward the door while it drinks, then slides the empty back. An animal pushed right out of the door is served too.
 - **Empties:** an empty slides toward the jug end of its counter. Be on that counter (anywhere along it) and you catch it (+100). Nobody there: it falls off the end, SPLASH.
 - **Tips:** sometimes an animal leaves a coin on the counter. Walk over it for +250 and a little dance: Foxy 🦊 and Froggy 🐸 dance on their stage and every animal stops to watch for a moment.
-- **Lives:** an animal that walks all the way to the jug costs a life (both levels), and on NORMAL so do splashes. Everything waits for a moment, then carries on.
+- **Lives:** an animal that walks all the way to the jug costs a life (both levels), and on NORMAL so do splashes. Everything waits for a moment, then carries on (a cup you were holding stays in your hand).
 - **Waves:** serve every animal to clear the wave. Then the winner does his signature move (Teddy boxes and sinks a 🏀 jump shot, Tommy does his Y pose ✌️), confetti, and the results show the score, the HI-SCORE (one per difficulty), the animals served, the empties caught and the tips, with NEXT WAVE ▶ and ↻ PLAY AGAIN.
 - **Four bars:** SUNNY BEACH 🏖️, JUNGLE HUT 🌴, SNOWY CABIN ⛄ and STARRY NIGHT 🌙, then round 2 goes round them again with one more animal and quicker walking.
 - **2 players:** Teddy and Tommy share the bar, one server each. They can stand at the same counter. The results say who served the most.
@@ -77,7 +77,7 @@ In 2 players T is a high five: both servers pour quicker for 6 s.
   1. cups slide and stop by the same rules at any fps: a lone cup, a whole round trip (catch, slide back, drink, the empty back, caught), walking animals, a walking server and the pouring time, at 20, 30, 60, 144 fps and a wobbly frame rate;
   2. animals catch, drink and slide back (every animal, both levels), two-cup animals walk again, the cup goes to the front of the queue, a push past the door serves them, a drinker stops at the animal behind;
   3. empties come back and can be caught, sooner if you walk out to meet them, by moving to their counter in time, and fall off when nobody is there;
-  4. splashes cost a life only on NORMAL (full and empty cups), the brother's cups never do, an animal at the jug costs one on both, and the pause after a lost life ends;
+  4. splashes cost a life only on NORMAL (full and empty cups), the brother's cups never do, an animal at the jug costs one on both, the pause after a lost life ends, and letting go of a full cup during that pause keeps it in hand (it doesn't slide off later);
   5. a wave ends when every animal is served and not before, plus the autopilot (`js/bot.js`) clearing every wave and round 2 on EASY and NORMAL, 1 and 2 players;
   plus the companion (3 calls, 3 visits, a cup down all 4 counters, the high five in 2 players) and 24,000 frames of random keys that never take a server off the counters.
   `node tools/check.js --soak` adds 3 seeds of every wave with the companion called. The **fail variant** breaks one rule at a time (`JB.SABOTAGE`: cups moving by the frame, no slide back, no empty, empties uncatchable, splashes costing a life on EASY, the wave ending early) and every one is caught.

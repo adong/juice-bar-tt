@@ -209,6 +209,16 @@
         }
         r.splashes++;
       }
+      // letting go of a full cup during the pause after a lost life keeps it in hand: nothing slides when play comes back
+      if (diff === 'normal') {
+        const P = quietBar({ diff });
+        run(P, 60, 1, () => [{ fill: true }]);
+        addCup(P, 3, -0.9, 'full');
+        run(P, 60, P.time + 0.2, () => [{ fill: true }]);
+        const inOops = P.state === 'oops';
+        run(P, 60, P.time + TUNE.oopsT + 0.5);
+        ok(inOops && P.state === 'play' && P.servers[0].sent === 0 && P.servers[0].fill >= 1, `4 normal: letting go during the pause slid ${P.servers[0].sent} cups afterwards (should keep the full cup)`);
+      }
       // the brother's cups are magic: no life, on either level
       const B = quietBar({ diff });
       const lives = B.lives;

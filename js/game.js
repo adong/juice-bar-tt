@@ -1211,6 +1211,7 @@
       M.cups.length = 0;
       M.tips.length = 0;
       M.noClear = true;
+      for (const s of M.servers) Object.assign(s, { fill: 0, held: false });
       return this.state();
     },
     // put server i at a counter and a spot along it

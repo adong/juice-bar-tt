@@ -2112,6 +2112,8 @@ JB.SUBTITLE = "Teddy & Tommy's super-silly juice bar";
     }
     buddyStep(M, dt);
     if (M.state === 'oops') {
+      // nothing moves, but letting go of the pour key now doesn't fire the cup later: he just keeps it
+      M.servers.forEach((sv, i) => { sv.held = !!(inputs[i] && inputs[i].fill); });
       leavers(M, dt);
       if (!SAB.stuckOops && M.stateT >= TUNE.oopsT) setState(M, M.lives <= 0 ? 'over' : 'play');
       if (M.state === 'over') ev(M, 'over');
@@ -2733,6 +2735,16 @@ JB.SUBTITLE = "Teddy & Tommy's super-silly juice bar";
           ok(M.state === 'play', `4 normal: the bar was still ${M.state} ${TUNE.oopsT + 0.2} s after a splash`);
         }
         r.splashes++;
+      }
+      // letting go of a full cup during the pause after a lost life keeps it in hand: nothing slides when play comes back
+      if (diff === 'normal') {
+        const P = quietBar({ diff });
+        run(P, 60, 1, () => [{ fill: true }]);
+        addCup(P, 3, -0.9, 'full');
+        run(P, 60, P.time + 0.2, () => [{ fill: true }]);
+        const inOops = P.state === 'oops';
+        run(P, 60, P.time + TUNE.oopsT + 0.5);
+        ok(inOops && P.state === 'play' && P.servers[0].sent === 0 && P.servers[0].fill >= 1, `4 normal: letting go during the pause slid ${P.servers[0].sent} cups afterwards (should keep the full cup)`);
       }
       // the brother's cups are magic: no life, on either level
       const B = quietBar({ diff });
@@ -4882,6 +4894,7 @@ JB.SUBTITLE = "Teddy & Tommy's super-silly juice bar";
       M.cups.length = 0;
       M.tips.length = 0;
       M.noClear = true;
+      for (const s of M.servers) Object.assign(s, { fill: 0, held: false });
       return this.state();
     },
     // put server i at a counter and a spot along it
@@ -5072,13 +5085,14 @@ JB.SUBTITLE = "Teddy & Tommy's super-silly juice bar";
       const moves = (label, i = 0, K = SETS.arrows) => {
         game.put(i, S(i).row, 7);
         let a = game.screenOf(i);
+        const x0 = S(i).x;
         hold(K.R, 0.25);
         let b = game.screenOf(i);
-        const right = b.x - a.x > 8;
+        const right = b.x - a.x > 8, x1 = S(i).x, dr = b.x - a.x;
         a = b;
         hold(K.L, 0.25);
         b = game.screenOf(i);
-        return ok(right && a.x - b.x > 8, `${label}: → and ← didn't move him afterwards`);
+        return ok(right && a.x - b.x > 8, `${label}: → and ← didn't move him afterwards (x ${x0.toFixed(2)} → ${x1.toFixed(2)} → ${S(i).x.toFixed(2)}, ${dr.toFixed(0)} / ${(b.x - a.x).toFixed(0)} px, ${M().state}, ${game.G.screen}, held ${JB.Input.held().join(' ')}, other ${S(1 - i) ? S(1 - i).row + '/' + S(1 - i).x.toFixed(2) : '-'}, row ${S(i).row})`);
       };
       // a lost life: a short pause, then the keys work again
       game.start({ n: 0, diff: 'normal' });
@@ -5119,6 +5133,7 @@ JB.SUBTITLE = "Teddy & Tommy's super-silly juice bar";
         for (const two of [false, true]) {
           game.start({ n, diff: 'normal', two });
           M().lives = 999;
+          M().noClear = true; // the kid may serve them all: keep bashing
           const down = new Set();
           const secs = o.quick ? 8 : 30;
           for (let f = 0; f < secs * 60; f++) {
